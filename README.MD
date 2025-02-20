@@ -2,3 +2,5 @@
 > 基于selenium实现
 
 这个型号的直接用。其他型号的，得自己抓页面标签了。
+
+docker-compose.yaml里面的镜像支持amd64和arm64。
