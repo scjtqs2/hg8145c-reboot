@@ -1,0 +1,18 @@
+services:
+  chrome:
+    image: seleniarm/standalone-chromium:124.0-20240427
+    restart: always
+    expose:
+      - 4444
+    shm_size: 2gb
+  job:
+    image: ghcr.io/scjtqs2/hg8145c-reboot:main
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      - LANG=zh_CN.UTF-8
+      - SELENIUM_ADDR="http://chrome:4444"
+      - LOGIN_URL="http://192.168.1.1"
+      - USERNAME=useradmin
+      - PASSWORD=password
+      - CRONTAB="0 0 * * *"
