@@ -19,6 +19,7 @@ type Job struct {
 	username string // 光猫的web用户名，非管理员的，在光猫的底部贴纸上
 	password string // 光猫的web密码，非管理员的，在光猫的底部贴纸上
 	crontab  string // 定时任务的计时规则。和linux的crontab的规则一致
+	ctx      context.Context
 }
 
 // NewJob 初始化Job类
@@ -70,21 +71,37 @@ func (g *Job) login(username string, password string) error {
 	})
 	usenameRequest, err := g.wd.FindElement(selenium.ByCSSSelector, "#user_name")
 	if err != nil {
+		log.Errorf(g.ctx, "查找用户名输入框失败 err=%v", err)
 		return err
 	}
-	usenameRequest.Clear()
-	usenameRequest.SendKeys(username)
+	err = usenameRequest.Clear() // 清空预制的密码。
+	if err != nil {
+		log.Errorf(g.ctx, "清空用户名输入框内容失败 err=%v", err)
+		return err
+	}
+	err = usenameRequest.SendKeys(username)
+	if err != nil {
+		log.Errorf(g.ctx, "输入用户名失败 err=%v", err)
+		return err
+	}
 	passwordRequest, err := g.wd.FindElement(selenium.ByCSSSelector, "#password")
 	if err != nil {
+		log.Errorf(g.ctx, "查找密码输入框失败 err=%v", err)
 		return err
 	}
-	passwordRequest.SendKeys(password)
+	err = passwordRequest.SendKeys(password)
+	if err != nil {
+		log.Errorf(g.ctx, "输入密码失败 err=%v", err)
+		return err
+	}
 	submitBtn, err := g.wd.FindElement(selenium.ByCSSSelector, "#save")
 	if err != nil {
+		log.Errorf(g.ctx, "没找到登录按钮 err=%v", err)
 		return err
 	}
 	err = submitBtn.Click()
 	if err != nil {
+		log.Errorf(g.ctx, "点击登录失败 err=%v", err)
 		return err
 	}
 	return nil
@@ -98,14 +115,17 @@ func (g *Job) switchToReboot() error {
 		return err == nil, nil
 	})
 	if err != nil {
+		log.Errorf(g.ctx, "登录管理栏出现失败 err=%v", err)
 		return err
 	}
 	guanli, err := g.wd.FindElement(selenium.ByCSSSelector, "#Menu1_Managemen > div.item_link > a")
 	if err != nil {
+		log.Errorf(g.ctx, "查找管理栏失败 err=%v", err)
 		return err
 	}
 	err = guanli.Click()
 	if err != nil {
+		log.Errorf(g.ctx, "点击管理栏失败 err=%v", err)
 		return err
 	}
 	// 进入“设备”界面
@@ -114,19 +134,23 @@ func (g *Job) switchToReboot() error {
 		return err == nil, nil
 	})
 	if err != nil {
+		log.Errorf(g.ctx, "等待设备栏出现失败 err=%v", err)
 		return err
 	}
 	shebei, err := g.wd.FindElement(selenium.ByCSSSelector, "#Menu2_Mng_Device > a")
 	if err != nil {
+		log.Errorf(g.ctx, "查找设备栏失败 err=%v", err)
 		return err
 	}
 	err = shebei.Click()
 	if err != nil {
+		log.Errorf(g.ctx, "点击设备栏失败 err=%v", err)
 		return err
 	}
 	// 需要切换iframe
 	err = g.wd.SwitchFrame("frameContent")
 	if err != nil {
+		log.Errorf(g.ctx, "切换到 id=frameContent的iframe失败 err=%v", err)
 		return err
 	}
 	// 找到“重启”按钮
@@ -135,15 +159,18 @@ func (g *Job) switchToReboot() error {
 		return err == nil, nil
 	})
 	if err != nil {
+		log.Errorf(g.ctx, "没等到重启按钮出现 err=%v", err)
 		return err
 	}
 	chongqi, err := g.wd.FindElement(selenium.ByCSSSelector, "#Restart_button")
 	if err != nil {
+		log.Errorf(g.ctx, "查询重启按钮失败 err=%v", err)
 		return err
 	}
 	// 点击“重启”按钮
 	err = chongqi.Click()
 	if err != nil {
+		log.Errorf(g.ctx, "点击重启按钮失败 err=%v", err)
 		return err
 	}
 	// “确认”alert弹窗
@@ -154,6 +181,7 @@ func (g *Job) switchToReboot() error {
 func (g *Job) screenShort() error {
 	b, err := g.wd.Screenshot()
 	if err != nil {
+		log.Errorf(g.ctx, "截图当前页面失败 err=%v", err)
 		return err
 	}
 	return os.WriteFile("tmp.png", b, 0777)
@@ -163,6 +191,7 @@ func (g *Job) screenShort() error {
 func (g *Job) pageSource() error {
 	b, err := g.wd.PageSource()
 	if err != nil {
+		log.Errorf(g.ctx, "打印当前页面源码失败 err=%v", err)
 		return err
 	}
 	return os.WriteFile("index.html", []byte(b), 0777)
@@ -173,23 +202,26 @@ func (g *Job) reboot() error {
 	var err error
 	g.wd, err = g.newChrome()
 	if err != nil {
+		log.Errorf(g.ctx, "初始化 chromedriver 失败了 err=%v", err)
 		return err
 	}
 	defer g.wd.Quit()
 	defer g.pageSource()
 	defer g.screenShort()
+	log.Infof(g.ctx, "start login")
 	err = g.login(g.username, g.password)
 	if err != nil {
+		log.Errorf(g.ctx, "login faild err=%v", err)
 		return err
 	}
 	return g.switchToReboot()
 }
 
 func (g *Job) execJob() {
-	ctx := context.TODO()
+	g.ctx = context.TODO()
 	err := g.reboot()
 	if err != nil {
-		log.Errorf(ctx, "reboot faild %v", err)
+		log.Errorf(g.ctx, "reboot faild %v", err)
 	}
 }
 
@@ -199,6 +231,7 @@ func main() {
 	se := NewJob()
 	_, err = se.cron.AddFunc(se.crontab, se.execJob)
 	if err != nil {
+		log.Errorf(context.Background(), "计划任务创建失败 err=%v", err)
 		panic(err)
 	}
 	se.cron.Run()
