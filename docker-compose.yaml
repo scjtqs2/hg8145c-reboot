@@ -6,7 +6,7 @@ services:
       - 4444
     shm_size: 2gb
   job:
-    image: ghcr.io/scjtqs2/hg8145c-reboot:main
+    image: ghcr.io/scjtqs2/hg8145c-reboot:edge
     restart: always
     environment:
       - TZ=Asia/Shanghai
