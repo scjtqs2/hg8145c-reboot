@@ -32,8 +32,8 @@ RUN chmod +x /data/job_app
 
 ENV SELENIUM_ADDR="http://chrome:4444"
 ENV LOGIN_URL="http://192.168.1.1"
-ENV USERNAME="useradmin"
-ENV PASSWORD="12345"
+ENV LOGIN_USERNAME="useradmin"
+ENV LOGIN_PASSWORD="12345"
 ENV CRONTAB="30 0 * * *"
 
 ENTRYPOINT [ "/data/job_app" ]

@@ -26,8 +26,8 @@ func NewJob() *Job {
 	se := &Job{
 		seAddr:   os.Getenv("SELENIUM_ADDR"),
 		loginUrl: os.Getenv("LOGIN_URL"),
-		username: os.Getenv("USERNAME"),
-		password: os.Getenv("PASSWORD"),
+		username: os.Getenv("LOGIN_USERNAME"),
+		password: os.Getenv("LOGIN_PASSWORD"),
 		crontab:  os.Getenv("CRONTAB"),
 	}
 	// 定时任务开启

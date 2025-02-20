@@ -1,4 +1,4 @@
-name: mtlogin Docker Push
+name: hg8145c-reboot Docker Push
 
 on:
   push:
