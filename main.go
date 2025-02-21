@@ -198,16 +198,21 @@ func (g *Job) pageSource() error {
 }
 
 // reboot 重启流程
-func (g *Job) reboot() error {
-	var err error
+func (g *Job) reboot() (err error) {
 	g.wd, err = g.newChrome()
 	if err != nil {
 		log.Errorf("初始化 chromedriver 失败了 err=%v", err)
 		return err
 	}
 	defer g.wd.Quit()
-	defer g.pageSource()
-	defer g.screenShort()
+	defer func() {
+		if err != nil {
+			g.screenShort()
+			g.pageSource()
+		} else {
+			log.Info("reboot success")
+		}
+	}()
 	log.Infof("start login")
 	err = g.login(g.username, g.password)
 	if err != nil {
@@ -227,6 +232,7 @@ func (g *Job) execJob() {
 
 // main 主入口
 func main() {
+	log.Info("progress starting")
 	var err error
 	se := NewJob()
 	_, err = se.cron.AddFunc(se.crontab, se.execJob)
