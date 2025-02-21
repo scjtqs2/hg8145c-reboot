@@ -62,7 +62,7 @@ func (g *Job) newChrome() (selenium.WebDriver, error) {
 
 // login 登录光猫管理界面
 func (g *Job) login(username string, password string) error {
-	if err := g.wd.Get(g.seAddr); err != nil {
+	if err := g.wd.Get(g.loginUrl); err != nil {
 		return err
 	}
 	_ = g.wd.Wait(func(wd selenium.WebDriver) (bool, error) {
