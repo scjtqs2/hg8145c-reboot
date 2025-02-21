@@ -7,6 +7,7 @@ services:
     shm_size: 2gb
   job:
     image: ghcr.io/scjtqs2/hg8145c-reboot:edge
+    pull_policy: always
     restart: always
     environment:
       - TZ=Asia/Shanghai
