@@ -11,3 +11,28 @@
 这个型号的直接用。其他型号的，得自己抓页面标签了。
 
 docker-compose.yaml里面的镜像支持amd64和arm64。
+
+## docker-coompose
+```yaml
+services:
+  # 基于chrome的无头浏览器
+  chrome:
+    image: seleniarm/standalone-chromium:124.0-20240427
+    restart: always
+    expose:
+      - 4444
+    shm_size: 2gb
+  job:
+    image: ghcr.io/scjtqs2/hg8145c-reboot:edge
+    pull_policy: always              # 每次都更新
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      - LANG=zh_CN.UTF-8
+      - SELENIUM_ADDR="http://chrome:4444"
+      - LOGIN_URL="http://192.168.1.1" # 这里填你的光猫web地址
+      - LOGIN_USERNAME=useradmin       # 光猫贴纸上的用户名
+      - LOGIN_PASSWORD=password        # 光猫贴纸上的密码
+      - CRONTAB="0 0 * * *"            # 定时重启时间，默认每天凌晨0点重启。规程参考linux的crontab
+
+```
