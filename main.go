@@ -60,6 +60,28 @@ func (g *Job) newChrome() (selenium.WebDriver, error) {
 	return wd, err
 }
 
+// newChromeMobile 初始化chrome的webdriver
+func (g *Job) newChromeMobile() (selenium.WebDriver, error) {
+	selenium.HTTPClient = &http.Client{
+		Timeout: time.Second * 30,
+	}
+	caps := selenium.Capabilities{"browserName": "chrome"}
+	// chrome参数
+	chromeCaps := chrome.Capabilities{
+		Args: []string{
+			"--headless", // 设置Chrome无头模式，在linux下运行，需要设置这个参数，否则会报错
+			"--disable-gpu",
+			// "--no-sandbox",
+			"--window-size=600,812",
+			// fmt.Sprintf("--proxy-server=%s", "http://192.168.28.101:7890"), // --proxy-server=http://127.0.0.1:1234
+		},
+		W3C: true,
+	}
+	caps.AddChrome(chromeCaps)
+	wd, err := selenium.NewRemote(caps, g.seAddr)
+	return wd, err
+}
+
 // login 登录光猫管理界面
 func (g *Job) login(username string, password string) error {
 	if err := g.wd.Get(g.seAddr); err != nil {
